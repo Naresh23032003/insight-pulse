@@ -1,0 +1,64 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Debug file structure
+        run: |
+          echo "Listing all files in the repository:"
+          find . -maxdepth 3 -not -path '*/.*'
+          
+      - name: Build, tag, and push image to ECR
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        run: |
+          # 1. List all files in the apps/web directory to see what it's really named
+          echo "Contents of apps/web:"
+          ls -F apps/web
+          
+          # 2. Find the file (case-insensitive)
+          DOCKERFILE_NAME=$(find apps/web -maxdepth 1 -iname "dockerfile" | head -n 1)
+          
+          if [ -z "$DOCKERFILE_NAME" ]; then
+            echo "CRITICAL: Could not find any Dockerfile in apps/web!"
+            exit 1
+          fi
+          
+          echo "Found file: $DOCKERFILE_NAME"
+          
+          # 3. Build using the discovered file
+          docker build -t $ECR_REGISTRY/insight-pulse:$GITHUB_SHA -f "$DOCKERFILE_NAME" apps/web
+          docker push $ECR_REGISTRY/insight-pulse:$GITHUB_SHA
+
+      - name: Update Kubernetes
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        run: |
+          aws eks update-kubeconfig --name insight-pulse-cluster --region ${{ secrets.AWS_REGION }}
+          # Patch the deployment with the new image tag
+          kubectl set image deployment/insight-pulse-web web=$ECR_REGISTRY/insight-pulse:$GITHUB_SHA -n insight-pulse
+
+      - name: Debug file structure
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -R

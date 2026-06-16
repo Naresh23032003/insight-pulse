@@ -1,0 +1,11 @@
+# Node
+node_modules/
+dist/
+.next/
+.env
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
