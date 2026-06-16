@@ -47,3 +47,9 @@ jobs:
         run: |
           echo "Current directory: $(pwd)"
           ls -R
+
+      - name: Update Kubernetes Deployment
+        run: |
+          # Use your ECR registry and the commit SHA to target the new image
+          aws eks update-kubeconfig --name YOUR_CLUSTER_NAME --region ${{ secrets.AWS_REGION }}
+          kubectl set image deployment/insight-pulse-web web=${{ steps.login-ecr.outputs.registry }}/insight-pulse:$GITHUB_SHA -n insight-pulse
