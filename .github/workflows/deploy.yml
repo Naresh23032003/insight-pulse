@@ -30,24 +30,9 @@ jobs:
           
       - name: Build, tag, and push image to ECR
         env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # 1. List all files in the apps/web directory to see what it's really named
-          echo "Contents of apps/web:"
-          ls -F apps/web
-          
-          # 2. Find the file (case-insensitive)
-          DOCKERFILE_NAME=$(find apps/web -maxdepth 1 -iname "dockerfile" | head -n 1)
-          
-          if [ -z "$DOCKERFILE_NAME" ]; then
-            echo "CRITICAL: Could not find any Dockerfile in apps/web!"
-            exit 1
-          fi
-          
-          echo "Found file: $DOCKERFILE_NAME"
-          
-          # 3. Build using the discovered file
-          docker build -t $ECR_REGISTRY/insight-pulse:$GITHUB_SHA -f "$DOCKERFILE_NAME" apps/web
+          docker build -t $ECR_REGISTRY/insight-pulse:$GITHUB_SHA ./apps/web
           docker push $ECR_REGISTRY/insight-pulse:$GITHUB_SHA
 
       - name: Update Kubernetes
