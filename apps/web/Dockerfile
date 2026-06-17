@@ -1,7 +1,7 @@
 # Multi-stage build (Small, secure, production-ready)
 FROM node:20-alpine AS base
 WORKDIR /app
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
 RUN npm run build
