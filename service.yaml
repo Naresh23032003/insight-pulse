@@ -5,7 +5,7 @@ metadata:
   namespace: insight-pulse
 spec:
   selector:
-    app: insight-pulse-app # Ensure this matches your deployment labels exactly
+    app: insight-pulse-web # Ensure this matches your deployment labels exactly
   type: LoadBalancer
   ports:
     - protocol: TCP
