@@ -1,5 +1,5 @@
 'use client';
-import { UserButton } from "@clerk/nextjs";
+import { ClerkProvider, UserButton } from "@clerk/nextjs";
 
 export default function CalculatorPage() {
   const handlePay = async () => {
@@ -9,10 +9,10 @@ export default function CalculatorPage() {
   };
 
   return (
-    <main>
+    <ClerkProvider>
       <UserButton />
       <h1>Premium Calculator</h1>
       <button onClick={handlePay}>Pay 1 to Calculate</button>
-    </main>
+    </ClerkProvider>
   );
 }
