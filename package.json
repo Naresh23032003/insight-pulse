@@ -10,7 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "stripe": "^22.2.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
